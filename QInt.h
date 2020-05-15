@@ -10,7 +10,7 @@ private:
 public:
 	QInt();
 	QInt(int a, int b, int c, int d);
-	QInt(std::string arrInt, int base);
+	QInt(std::string str, int base);
 
 	std::string toString(int base);
 
