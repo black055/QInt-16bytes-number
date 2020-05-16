@@ -44,7 +44,7 @@ QInt::QInt(std::string str, int base)
 	}
 	else if (base == 16) {
 		for (int i = str.size() - 1; i >= 0; i--) {
-			int temp, bitIndex = 4 * (str.size() - 1 - i);
+			int temp = -1, bitIndex = 4 * (str.size() - 1 - i);
 			if (str[i] >= '0' && str[i] <= '9') {
 				temp = str[i] - '0';
 			}
@@ -54,8 +54,9 @@ QInt::QInt(std::string str, int base)
 			else if (str[i] >= 'a' && str[i] <= 'f') {
 				temp = str[i] + 10 - 'a';
 			}
-			for (int i = 0; i < str.size() * 4; i = i + 4);
-			arrBit[getArrayIndex(bitIndex)] = (temp << getBitIndex(bitIndex)) | arrBit[getArrayIndex(bitIndex)];
+			if (temp != -1) {
+				arrBit[getArrayIndex(bitIndex)] = (temp << getBitIndex(bitIndex)) | arrBit[getArrayIndex(bitIndex)];
+			}
 		}
 	}
 }
@@ -66,6 +67,10 @@ std::string QInt::toString(int base)
 	if (base == 2) {
 		for (int i = 127; i >= 0; i--) {
 			result += (arrBit[getArrayIndex(i)] >> (getBitIndex(i)) & 1) + '0';
+		}
+
+		while (result.size() > 1 && result[0] == '0') {
+			result.erase(result.begin());
 		}
 	}
 	if (base == 16) {
@@ -81,25 +86,25 @@ std::string QInt::toString(int base)
 				result = temp + result;
 			}
 		}
+
+		while (result.size() > 1 && result[0] == '0') {
+			result.erase(result.begin());
+		}
 	}
 	if (base == 10) {
 		QInt temp(*this);
 		bool isNegative = false;
 		result.append(128, '0');
-		std::string bitA; int count = 0;
+
 		if (temp.isPositive() == false) {
 			isNegative = true;
-			temp = ~temp;
-			temp = temp + QInt(0, 0, 0, 1);
+			temp = temp - QInt(0, 0, 0, 1);
+			temp = ~temp;	
 		}
 		for (int i = 0; i < 128; i++) {
 			// luu gia tri bit dau
 			int firstBit = temp.arrBit[0] < 0;
 			temp = temp << 1;
-
-			if (firstBit) {
-				count = 1;
-			}
 
 			for (int index = result.size() - 1; index >= 0; index--) {
 				result[index] += result[index] - '0' + firstBit;
@@ -110,17 +115,15 @@ std::string QInt::toString(int base)
 					result[index] -= 10;
 				}
 			}
-			if (count == 1) {
-				char aa = '0' + firstBit;
-				bitA = aa + bitA;
-			}
 		}
+
+		while (result.size() > 1 && result[0] == '0') {
+			result.erase(result.begin());
+		}
+
 		if (isNegative == true) {
 			result = "-" + result;
 		}
-	}
-	while (result.size() > 1 && result[0] == '0') {
-		result.erase(result.begin());
 	}
 
 	return result;
