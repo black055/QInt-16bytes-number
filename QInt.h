@@ -28,4 +28,6 @@ public:
 
 	QInt operator << (int a);
 	QInt operator >> (int a);
+
+	bool isPositive();
 };

@@ -82,7 +82,43 @@ std::string QInt::toString(int base)
 			}
 		}
 	}
+	if (base == 10) {
+		QInt temp(*this);
+		bool isNegative = false;
+		result.append(128, '0');
+		std::string bitA; int count = 0;
+		if (temp.isPositive() == false) {
+			isNegative = true;
+			temp = ~temp;
+			temp = temp + QInt(0, 0, 0, 1);
+		}
+		for (int i = 0; i < 128; i++) {
+			// luu gia tri bit dau
+			int firstBit = temp.arrBit[0] < 0;
+			temp = temp << 1;
 
+			if (firstBit) {
+				count = 1;
+			}
+
+			for (int index = result.size() - 1; index >= 0; index--) {
+				result[index] += result[index] - '0' + firstBit;
+
+				firstBit = (result[index] > '9');
+
+				if (firstBit) {
+					result[index] -= 10;
+				}
+			}
+			if (count == 1) {
+				char aa = '0' + firstBit;
+				bitA = aa + bitA;
+			}
+		}
+		if (isNegative == true) {
+			result = "-" + result;
+		}
+	}
 	while (result.size() > 1 && result[0] == '0') {
 		result.erase(result.begin());
 	}
@@ -179,33 +215,64 @@ QInt QInt::operator~()
 
 QInt QInt::operator<<(int a)
 {
-	return QInt();
+	if (a < 128) {
+		QInt result;
+
+		bool isNegative = (arrBit[0] < 0) ? true : false;
+
+		for (int i = 127; i >= a; i--) {
+			if ((arrBit[getArrayIndex(i - a)] >> getBitIndex(i - a) & 1) == 0) {
+				// gan gia tri 0 tai vi tri i neu vi tri i - a la bit 0
+				result.arrBit[getArrayIndex(i)] = ~(1 << getBitIndex(i)) & result.arrBit[getArrayIndex(i)];
+			}
+			else {
+				// gan gia tri 1 tai vi tri i neu vi tri i - a la bit i
+				result.arrBit[getArrayIndex(i)] = (1 << getBitIndex(i)) | result.arrBit[getArrayIndex(i)];
+			}
+		}
+
+		for (int i = 0; i < a; i++) {
+			result.arrBit[getArrayIndex(i)] = ~(1 << getBitIndex(i)) & result.arrBit[getArrayIndex(i)];
+		}
+		return result;
+	}
+	return QInt(*this);
 }
 
 QInt QInt::operator>>(int a)
 {
-	QInt result;
+	if (a < 128) {
+		QInt result;
 
-	bool isNegative = (arrBit[0] < 0) ? true: false;
+		bool isNegative = (arrBit[0] < 0) ? true: false;
 
-	for (int i = 0; i <= 127 - a; i++) {
-		if ((arrBit[getArrayIndex(i + a)] >> getBitIndex(i + a) & 1) == 0) {
-			// gan gia tri 0 tai vi tri i neu vi tri i + a la bit 0
-			result.arrBit[getArrayIndex(i)] = ~(1 << getBitIndex(i)) & result.arrBit[getArrayIndex(i)];
+		for (int i = 0; i <= 127 - a; i++) {
+			if ((arrBit[getArrayIndex(i + a)] >> getBitIndex(i + a) & 1) == 0) {
+				// gan gia tri 0 tai vi tri i neu vi tri i + a la bit 0
+				result.arrBit[getArrayIndex(i)] = ~(1 << getBitIndex(i)) & result.arrBit[getArrayIndex(i)];
+			}
+			else {
+				// gan gia tri 1 tai vi tri i neu vi tri i + a la bit i
+				result.arrBit[getArrayIndex(i)] = (1 << getBitIndex(i)) | result.arrBit[getArrayIndex(i)];
+			}
 		}
-		else {
-			// gan gia tri 1 tai vi tri i neu vi tri i + a la bit i
-			result.arrBit[getArrayIndex(i)] = (1 << getBitIndex(i)) | result.arrBit[getArrayIndex(i)];
+
+		for (int i = 127; i >= 0 && i > 127 - a; i--) {
+			if (isNegative == true) {
+				result.arrBit[getArrayIndex(i)] = (1 << getBitIndex(i)) | result.arrBit[getArrayIndex(i)];
+			}
+			else {
+				result.arrBit[getArrayIndex(i)] = ~(1 << getBitIndex(i)) & result.arrBit[getArrayIndex(i)];
+			}
 		}
+		return result;
 	}
+	return QInt(*this);
+}
 
-	for (int i = 127; i >= 0 && i > 127 - a; i++) {
-		if (isNegative == true) {
-			result.arrBit[getArrayIndex(i)] = (1 << getBitIndex(i)) | result.arrBit[getArrayIndex(i)];
-		}
-		else {
-			result.arrBit[getArrayIndex(i)] = ~(1 << getBitIndex(i)) & result.arrBit[getArrayIndex(i)];
-		}
-	}
-	return result;
+bool QInt::isPositive()
+{
+	if (arrBit[0] < 0)
+		return false;
+	else return true;
 }
