@@ -224,12 +224,113 @@ QInt QInt::operator-(int a)
 
 QInt QInt::operator*(QInt a)
 {
-	return QInt();
+	QInt result;
+	if (this->isZero() || a.isZero())
+		return result;
+	bool isNegative = false;
+	QInt replace = *this;
+	if (a.arrBit[3] < 0 && this->arrBit[3] < 0) {
+		isNegative = false;
+		QInt zero;
+		a = zero - a;
+		replace = zero - *this;
+	}
+	else if (a.arrBit[3] < 0 || this->arrBit[3] < 0) {
+		isNegative = true;
+		QInt zero;
+		if (a.arrBit[3] < 0)
+			a = zero - a;
+		else
+			replace = zero - *this;
+	}
+
+	//swap(this->arrBit[0], this->arrBit[3]);
+	//swap(this->arrBit[1], this->arrBit[2]);
+	QInt temp;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 32; j++)
+		{
+			if (replace.getBitAt(i * 32 + j) == 1)
+			{
+				temp = a << (i * 32 + j);
+				result = result + temp;
+			}
+		}
+	}
+	
+	if (isNegative == true)
+	{
+		QInt zero;
+		result = zero - result;
+	}
+	return result;
 }
 
 QInt QInt::operator/(QInt a)
 {
-	return QInt();
+	if (a.isZero())
+		return QInt(INT_MAX, INT_MAX, INT_MAX, INT_MAX);
+	if (this->isZero())
+		return QInt(0, 0, 0, 0);
+	QInt result;
+	QInt replace = *this;
+	//if (this->isZero() || a.isZero())
+	//	return result;
+	bool isNegative = false;
+	if (a.arrBit[3] < 0 && this->arrBit[3] < 0) {
+		isNegative = false;
+		QInt zero;
+		a = zero - a;
+		replace = zero - replace;
+	}
+	else if (a.arrBit[3] < 0 || this->arrBit[3] < 0) {
+		isNegative = true;
+		QInt zero;
+		if (a.arrBit[3] < 0)
+			a = zero - a;
+		else
+			replace = zero - replace;
+	}
+
+	if ((replace - a).isPositive() == false)
+		return QInt(0, 0, 0, 0);
+	else
+	{
+		while (replace.isZero() == false)
+		{
+			QInt sub = replace - a;
+			if (sub.isPositive() == false)
+				break;
+			QInt quotient(0, 0, 0, 1);
+			for (int i = 0; i < 128; i++)
+			{
+				QInt temp = (quotient * a);
+				temp = temp - replace;
+				if (temp.isPositive() && temp.isZero() == false)
+				{
+					quotient = quotient >> 1;
+					result = result + quotient;
+					replace = replace - a * quotient;
+					break;
+				}
+				else if (temp.isPositive())
+				{
+					result = result + quotient;
+					replace = replace - a * quotient;
+					break;
+				}
+				quotient = quotient << 1;
+			}
+		}
+	}
+
+	if (isNegative == true)
+	{
+		QInt zero;
+		result = zero - result;
+	}
+	return result;
 }
 
 QInt QInt::operator&(QInt a)
@@ -326,4 +427,23 @@ bool QInt::isPositive()
 	if (arrBit[0] < 0)
 		return false;
 	else return true;
+}
+
+bool QInt::isZero()
+{
+	for (int index = 0; index < 4; ++index) {
+		if (this->arrBit[index] != 0)
+			return false;
+	}
+
+	return true;
+}
+
+int QInt::getBitAt(int index)
+{
+	int result;
+	int position_byte = (127 - index) / 32;
+	int position_bit = index % 32;
+	result = (this->arrBit[position_byte] >> position_bit) & 1;
+	return result;
 }

@@ -30,4 +30,6 @@ public:
 	QInt operator >> (int a);
 
 	bool isPositive();
+	bool isZero();
+	int getBitAt(int index);
 };
