@@ -12,6 +12,22 @@ int getBitIndex(int i) {
 	return i % 32;
 }
 
+std::string div2(std::string number) {
+
+	std::string result;
+	int temp = 0, index = 0;
+	while (temp < 2 && index < number.size()) {
+		temp = temp * 10 + number[index++] - '0';
+	}
+
+	while (index <= number.size()) {
+		result += (temp / 2) + '0';
+
+		temp = (temp % 2) * 10 + (number[index++] - '0');
+	}
+	return result;
+}
+
 QInt::QInt() {
 	for (int i = 0; i < 4; i++) {
 		arrBit[i] = 0;
@@ -37,7 +53,7 @@ QInt::QInt(std::string str, int base)
 				arrBit[getArrayIndex(i)] = ~(1 << getBitIndex(i)) & arrBit[getArrayIndex(i)];
 			}
 			else {
-				// gan gia tri 1 tai vi tri i neu vi tri i + a la bit i
+				// gan gia tri 1 tai vi tri i
 				arrBit[getArrayIndex(i)] = (1 << getBitIndex(i)) | arrBit[getArrayIndex(i)];
 			}
 		}
@@ -57,6 +73,28 @@ QInt::QInt(std::string str, int base)
 			if (temp != -1) {
 				arrBit[getArrayIndex(bitIndex)] = (temp << getBitIndex(bitIndex)) | arrBit[getArrayIndex(bitIndex)];
 			}
+		}
+	}
+	else if (base == 10) {
+		bool isNegative = false;
+		int index = 0;
+		if (str[0] == '-') {
+			isNegative = true;
+			str.erase(str.begin());
+		}
+
+		while (str != "0" && index < 128) {
+			if ((str[str.size() - 1] - '0') % 2 == 1 ) {
+				// gan gia tri 1 tai vi tri index
+				arrBit[getArrayIndex(index)] = (1 << getBitIndex(index)) | arrBit[getArrayIndex(index)];
+			}
+			index++;
+			str = div2(str);
+		}
+
+		if (isNegative == true) {
+			*this = ~*this;
+			*this = *this + 1;
 		}
 	}
 }
@@ -144,15 +182,20 @@ QInt QInt::operator+(QInt a)
 		int temp = arrBit[i] + a.arrBit[i];
 		temp += isMissing;
 		isMissing = 0;
-		if (arrBit[i] < 0 && a.arrBit[i] > 0 && temp > 0)
+		if (arrBit[i] < 0 && a.arrBit[i] >= 0 && temp >= 0)
 			isMissing = 1;
 		if (arrBit[i] < 0 && a.arrBit[i] < 0)
 			isMissing = 1;
-		if (arrBit[i] > 0 && a.arrBit[i] < 0 && temp > 0)
+		if (arrBit[i] >= 0 && a.arrBit[i] < 0 && temp >= 0)
 			isMissing = 1;
 		result.arrBit[i] = temp;
 	}
 	return result;
+}
+
+QInt QInt::operator+(int a)
+{
+	return *this + QInt(0, 0, 0, a);
 }
 
 QInt QInt::operator-(QInt a)
@@ -163,15 +206,20 @@ QInt QInt::operator-(QInt a)
 		int temp = arrBit[i] - a.arrBit[i];
 		temp -= isMissing;
 		isMissing = 0;
-		if (arrBit[i] > 0 && a.arrBit[i] > 0 && temp < 0)
+		if (arrBit[i] >= 0 && a.arrBit[i] >= 0 && temp < 0)
 			isMissing = 1;
-		if (arrBit[i] < 0 && a.arrBit[i] < 0 && temp < 0)
+		if (arrBit[i] < 0 && a.arrBit[i] < 0 && temp > 0)
 			isMissing = 1;
-		if (arrBit[i] > 0 && a.arrBit[i] < 0)
+		if (arrBit[i] >= 0 && a.arrBit[i] < 0)
 			isMissing = 1;
 		result.arrBit[i] = temp;
 	}
 	return result;
+}
+
+QInt QInt::operator-(int a)
+{
+	return *this - QInt(0, 0, 0, a);
 }
 
 QInt QInt::operator*(QInt a)

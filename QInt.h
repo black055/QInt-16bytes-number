@@ -2,8 +2,6 @@
 #include <iostream>
 #include <string>
 
-#define MAX_INT 2147483647
-
 class QInt {
 private:
 	int arrBit[4];
@@ -17,7 +15,9 @@ public:
 	void operator = (QInt a);
 
 	QInt operator + (QInt a);
+	QInt operator + (int a);
 	QInt operator - (QInt a);
+	QInt operator - (int a);
 	QInt operator * (QInt a);
 	QInt operator / (QInt a);
 
