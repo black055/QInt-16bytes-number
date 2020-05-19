@@ -422,6 +422,28 @@ QInt QInt::operator>>(int a)
 	return QInt(*this);
 }
 
+QInt QInt::rol()
+{
+	QInt result;
+	QInt temp;
+	int bit = getBitAt(127);
+	temp = *this << 1;
+	temp.setBitAt(0, bit);
+	result = temp;
+	return result;
+}
+
+QInt QInt::ror()
+{
+	QInt result;
+	QInt temp;
+	int bit = getBitAt(0);
+	temp = *this >> 1;
+	temp.setBitAt(127, bit);
+	result = temp;
+	return result;
+}
+
 bool QInt::isPositive()
 {
 	if (arrBit[0] < 0)
@@ -446,4 +468,14 @@ int QInt::getBitAt(int index)
 	int position_bit = index % 32;
 	result = (this->arrBit[position_byte] >> position_bit) & 1;
 	return result;
+}
+
+void QInt::setBitAt(int index, int value)
+{
+	int position_byte = (127 - index) / 32;
+	int position_bit = index % 32;
+	if (value == 1)
+		this->arrBit[position_byte] = (1 << position_bit) | this->arrBit[position_byte];
+	else if (value == 0)
+		this->arrBit[position_byte] = ~(1 << position_bit) & this->arrBit[position_byte];
 }

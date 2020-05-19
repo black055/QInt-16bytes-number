@@ -29,7 +29,11 @@ public:
 	QInt operator << (int a);
 	QInt operator >> (int a);
 
+	QInt rol();
+	QInt ror();
+
 	bool isPositive();
 	bool isZero();
 	int getBitAt(int index);
+	void setBitAt(int index, int value);
 };
