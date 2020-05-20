@@ -312,8 +312,6 @@ QInt QInt::operator/(QInt a)
 			QInt quotient(0, 0, 0, 1);
 			for (int i = 0; i < 128; i++)
 			{
-				std::string check = replace.toString(10);
-				std::string number_a = a.toString(10);
 				QInt temp = (quotient * a);
 				temp = temp - replace;
 				if (temp.isPositive() && temp.isZero() == false)
@@ -321,7 +319,6 @@ QInt QInt::operator/(QInt a)
 					quotient = quotient >> 1;
 					result = result + quotient;
 					replace = replace - a * quotient;
-					check = replace.toString(10);
 					break;
 				}
 				else if (temp.isPositive())
@@ -331,7 +328,6 @@ QInt QInt::operator/(QInt a)
 					break;
 				}
 				quotient = quotient << 1;
-				check = replace.toString(10);
 			}
 		}
 	}
