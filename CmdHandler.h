@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "QInt.h"
 
 class CmdHandler
 {

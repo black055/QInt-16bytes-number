@@ -17,6 +17,8 @@ void test()
 
 int main(int argc, char** argv)
 {
+	test(); // test here
+	return 0;
 	ifstream in(argv[1]);
 	ofstream out(argv[2]);
 	ioHandle(in, out);
