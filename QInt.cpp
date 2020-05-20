@@ -208,7 +208,7 @@ QInt QInt::operator-(QInt a)
 		isMissing = 0;
 		if (arrBit[i] >= 0 && a.arrBit[i] >= 0 && temp < 0)
 			isMissing = 1;
-		if (arrBit[i] < 0 && a.arrBit[i] < 0 && temp > 0)
+		if (arrBit[i] < 0 && a.arrBit[i] < 0 && temp < 0)
 			isMissing = 1;
 		if (arrBit[i] >= 0 && a.arrBit[i] < 0)
 			isMissing = 1;
