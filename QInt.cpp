@@ -1,4 +1,4 @@
-#include "QInt.h"
+﻿#include "QInt.h"
 
 int getArrayIndex(int i) {
 	if (i > 127 || i < 0)
@@ -229,23 +229,21 @@ QInt QInt::operator*(QInt a)
 		return result;
 	bool isNegative = false;
 	QInt replace = *this;
-	if (a.arrBit[3] < 0 && this->arrBit[3] < 0) {
+	if (a.arrBit[0] < 0 && this->arrBit[0] < 0) {
 		isNegative = false;
 		QInt zero;
 		a = zero - a;
 		replace = zero - *this;
 	}
-	else if (a.arrBit[3] < 0 || this->arrBit[3] < 0) {
+	else if (a.arrBit[0] < 0 || this->arrBit[0] < 0) {
 		isNegative = true;
 		QInt zero;
-		if (a.arrBit[3] < 0)
+		if (a.arrBit[0] < 0)
 			a = zero - a;
 		else
 			replace = zero - *this;
 	}
 
-	//swap(this->arrBit[0], this->arrBit[3]);
-	//swap(this->arrBit[1], this->arrBit[2]);
 	QInt temp;
 	for (int i = 0; i < 4; i++)
 	{
@@ -269,31 +267,40 @@ QInt QInt::operator*(QInt a)
 
 QInt QInt::operator/(QInt a)
 {
+	// Một trong 2 số bằng 0
 	if (a.isZero())
 		return QInt(INT_MAX, INT_MAX, INT_MAX, INT_MAX);
 	if (this->isZero())
 		return QInt(0, 0, 0, 0);
+
 	QInt result;
 	QInt replace = *this;
-	//if (this->isZero() || a.isZero())
-	//	return result;
+
+	// Kiểm tra số âm
 	bool isNegative = false;
-	if (a.arrBit[3] < 0 && this->arrBit[3] < 0) {
+	if (a.arrBit[0] < 0 && this->arrBit[0] < 0) {
 		isNegative = false;
 		QInt zero;
 		a = zero - a;
 		replace = zero - replace;
 	}
-	else if (a.arrBit[3] < 0 || this->arrBit[3] < 0) {
+	else if (a.arrBit[0] < 0 || this->arrBit[0] < 0) {
 		isNegative = true;
 		QInt zero;
-		if (a.arrBit[3] < 0)
+		if (a.arrBit[0] < 0)
 			a = zero - a;
 		else
 			replace = zero - replace;
 	}
 
-	if ((replace - a).isPositive() == false)
+	// Số bị chia và số chia bằng nhau
+	if ((replace - a).isZero())
+	{
+		QInt temp("1", 10);
+		result = temp;
+	}
+	// Số bị chia nhỏ hơn số chia
+	else if ((replace - a).isPositive() == false)
 		return QInt(0, 0, 0, 0);
 	else
 	{
@@ -305,6 +312,8 @@ QInt QInt::operator/(QInt a)
 			QInt quotient(0, 0, 0, 1);
 			for (int i = 0; i < 128; i++)
 			{
+				std::string check = replace.toString(10);
+				std::string number_a = a.toString(10);
 				QInt temp = (quotient * a);
 				temp = temp - replace;
 				if (temp.isPositive() && temp.isZero() == false)
@@ -312,6 +321,7 @@ QInt QInt::operator/(QInt a)
 					quotient = quotient >> 1;
 					result = result + quotient;
 					replace = replace - a * quotient;
+					check = replace.toString(10);
 					break;
 				}
 				else if (temp.isPositive())
@@ -321,6 +331,7 @@ QInt QInt::operator/(QInt a)
 					break;
 				}
 				quotient = quotient << 1;
+				check = replace.toString(10);
 			}
 		}
 	}
