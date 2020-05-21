@@ -1,4 +1,4 @@
-#include <fstream>
+﻿#include <fstream>
 #include "CmdHandler.h"
 #include <string>
 
@@ -27,11 +27,19 @@ int main(int argc, char** argv)
 	return 0;
 }
 
+// Nhiệm vụ: đọc từng dòng trong input, xử lý rồi ghi kết quả ra output
 void ioHandle(istream& in, ostream& out)
 {
 	string cmd;
 	while (getline(in, cmd))
 	{
-		out << CmdHandler().handle(cmd) << endl;
+		//try
+		//{
+			out << CmdHandler().handle(cmd) << endl;
+		//}
+		//catch (const char* msg)
+		//{
+		//	out << msg << endl;
+		//}
 	}
 }
