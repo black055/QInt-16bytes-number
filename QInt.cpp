@@ -13,16 +13,18 @@ int getBitIndex(int i) {
 }
 
 std::string div2(std::string number) {
-
+	// Trả về number / 2 (dưới dạng String)
 	std::string result;
 	int temp = 0, index = 0;
 	while (temp < 2 && index < number.size()) {
+		// Giá trị temp là n chữ số đầu sao cho temp > 2
 		temp = temp * 10 + number[index++] - '0';
 	}
 
 	while (index <= number.size()) {
+		// lần lượt chia temp cho 2 va cộng vao chuỗi result kết quả
 		result += (temp / 2) + '0';
-
+		// hạ từ chuỗi input xuống temp thêm 1 giá trị
 		temp = (temp % 2) * 10 + (number[index++] - '0');
 	}
 	return result;
@@ -43,23 +45,25 @@ QInt::QInt(int a, int b, int c, int d)
 
 QInt::QInt(std::string str, int base)
 {
+	// constructor sử dụng 1 string ở hệ cơ số base để khởi tạo giá trị QInt
 	for (int i = 0; i < 4; i++){
 		arrBit[i] = 0;
 	}
 	if (base == 2) {
 		for (int i = 0; i < str.size() && i < 128; i++) {
 			if (str[str.size() - 1 - i] == '0') {
-				// gan gia tri 0 tai vi tri i
+				// gán giá trị 0 tại vị trí i
 				arrBit[getArrayIndex(i)] = ~(1 << getBitIndex(i)) & arrBit[getArrayIndex(i)];
 			}
 			else {
-				// gan gia tri 1 tai vi tri i
+				// gán giá trị 1 tại vị trí i
 				arrBit[getArrayIndex(i)] = (1 << getBitIndex(i)) | arrBit[getArrayIndex(i)];
 			}
 		}
 	}
 	else if (base == 16) {
 		for (int i = str.size() - 1; i >= 0; i--) {
+			// lần lượt đọc từng kí tự va gán theo nhóm 4 bit tương ứng với giá trị của kí tự đó
 			int temp = -1, bitIndex = 4 * (str.size() - 1 - i);
 			if (str[i] >= '0' && str[i] <= '9') {
 				temp = str[i] - '0';
@@ -79,20 +83,24 @@ QInt::QInt(std::string str, int base)
 		bool isNegative = false;
 		int index = 0;
 		if (str[0] == '-') {
+			// nếu là số âm thì tìm biểu diễn QInt của giá trị tuyệt đối của nó trước
 			isNegative = true;
 			str.erase(str.begin());
 		}
 
 		while (str != "0" && index < 128) {
 			if ((str[str.size() - 1] - '0') % 2 == 1 ) {
-				// gan gia tri 1 tai vi tri index
+				// gán giá trị 1 tại vị trí index
 				arrBit[getArrayIndex(index)] = (1 << getBitIndex(index)) | arrBit[getArrayIndex(index)];
 			}
 			index++;
+
+			// str = str / 2;
 			str = div2(str);
 		}
 
 		if (isNegative == true) {
+			// nếu là số âm thì gán vào this giá trị bù 2
 			*this = ~*this;
 			*this = *this + 1;
 		}
@@ -101,8 +109,10 @@ QInt::QInt(std::string str, int base)
 
 std::string QInt::toString(int base)
 {
+	// hàm trả về 1 string là biểu diễn của QInt ở hệ cơ số base
 	std::string result;
 	if (base == 2) {
+		// lần lượt đọc và gán từng bit của QInt
 		for (int i = 127; i >= 0; i--) {
 			result += (arrBit[getArrayIndex(i)] >> (getBitIndex(i)) & 1) + '0';
 		}
@@ -112,9 +122,11 @@ std::string QInt::toString(int base)
 		}
 	}
 	if (base == 16) {
+		// nếu là hệ cơ số 16 thì đọc theo nhóm 4 bit và ghi lại kí tự tương ứng
 		for (int arrIndex = 3; arrIndex >= 0; arrIndex--) {
 			for (int i = 0; i < 8; i++) {
-				char temp = (arrBit[arrIndex] >> i * 4 & 15);
+				// lưu lại giá trị của nhóm 4 bit và chuyển thành kí tự
+				char temp = (arrBit[arrIndex] >> i * 4 & 0x0000000F);
 				if (temp < 10) {
 					temp = temp + '0';
 				}
@@ -140,10 +152,11 @@ std::string QInt::toString(int base)
 			temp = ~temp;	
 		}
 		for (int i = 0; i < 128; i++) {
-			// luu gia tri bit dau
+			// lưu lại giá trị bit đầu
 			int firstBit = temp.arrBit[0] < 0;
 			temp = temp << 1;
 
+			// lần lượt nhân 2 chuỗi result va cộng vào giá trị bit đầu
 			for (int index = result.size() - 1; index >= 0; index--) {
 				result[index] += result[index] - '0' + firstBit;
 
@@ -156,10 +169,12 @@ std::string QInt::toString(int base)
 		}
 
 		while (result.size() > 1 && result[0] == '0') {
+			// loại bỏ các kí tự '0' ở đầu chuỗi
 			result.erase(result.begin());
 		}
 
 		if (isNegative == true) {
+			// thêm dấu - nếu là số âm
 			result = "-" + result;
 		}
 	}
@@ -182,6 +197,7 @@ QInt QInt::operator+(QInt a)
 		int temp = arrBit[i] + a.arrBit[i];
 		temp += isMissing;
 		isMissing = 0;
+		// Các trường hợp xuất hiện bit nhớ
 		if (arrBit[i] < 0 && a.arrBit[i] >= 0 && temp >= 0)
 			isMissing = 1;
 		if (arrBit[i] < 0 && a.arrBit[i] < 0)
@@ -206,6 +222,7 @@ QInt QInt::operator-(QInt a)
 		int temp = arrBit[i] - a.arrBit[i];
 		temp -= isMissing;
 		isMissing = 0;
+		// Các trường hợp xuất hiện bit nhớ
 		if (arrBit[i] >= 0 && a.arrBit[i] >= 0 && temp < 0)
 			isMissing = 1;
 		if (arrBit[i] < 0 && a.arrBit[i] < 0 && temp < 0)
@@ -381,11 +398,11 @@ QInt QInt::operator<<(int a)
 
 		for (int i = 127; i >= a; i--) {
 			if ((arrBit[getArrayIndex(i - a)] >> getBitIndex(i - a) & 1) == 0) {
-				// gan gia tri 0 tai vi tri i neu vi tri i - a la bit 0
+				// Gán giá trị 0 tại vị trí i nếu vị trí i - a là bit 0
 				result.arrBit[getArrayIndex(i)] = ~(1 << getBitIndex(i)) & result.arrBit[getArrayIndex(i)];
 			}
 			else {
-				// gan gia tri 1 tai vi tri i neu vi tri i - a la bit i
+				// Gán giá trị 1 tại vị trí i nếu vị trí i - a là bit i
 				result.arrBit[getArrayIndex(i)] = (1 << getBitIndex(i)) | result.arrBit[getArrayIndex(i)];
 			}
 		}
@@ -407,16 +424,17 @@ QInt QInt::operator>>(int a)
 
 		for (int i = 0; i <= 127 - a; i++) {
 			if ((arrBit[getArrayIndex(i + a)] >> getBitIndex(i + a) & 1) == 0) {
-				// gan gia tri 0 tai vi tri i neu vi tri i + a la bit 0
+				// Gán giá trị 0 tại vị trí i nếu vị trí i + a là bit 0
 				result.arrBit[getArrayIndex(i)] = ~(1 << getBitIndex(i)) & result.arrBit[getArrayIndex(i)];
 			}
 			else {
-				// gan gia tri 1 tai vi tri i neu vi tri i + a la bit i
+				// gán giá trị 1 tại vị trí i nếu vị trí i + a là bit 1
 				result.arrBit[getArrayIndex(i)] = (1 << getBitIndex(i)) | result.arrBit[getArrayIndex(i)];
 			}
 		}
 
 		for (int i = 127; i >= 0 && i > 127 - a; i--) {
+			// gán cho a kí tự đầu giá trị của bit dấu
 			if (isNegative == true) {
 				result.arrBit[getArrayIndex(i)] = (1 << getBitIndex(i)) | result.arrBit[getArrayIndex(i)];
 			}
