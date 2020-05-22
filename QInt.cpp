@@ -268,8 +268,14 @@ QInt QInt::operator*(QInt a)
 		{
 			if (replace.getBitAt(i * 32 + j) == 1)
 			{
+				QInt temp_result = result;
 				temp = a << (i * 32 + j);
 				result = result + temp;
+				QInt check = (result - temp_result) >> (i * 32 + j);
+				if (!(a - check).isZero())
+				{
+					return QInt();
+				}
 			}
 		}
 	}
@@ -285,9 +291,7 @@ QInt QInt::operator*(QInt a)
 QInt QInt::operator/(QInt a)
 {
 	// Một trong 2 số bằng 0
-	if (a.isZero())
-		return QInt(INT_MAX, INT_MAX, INT_MAX, INT_MAX);
-	if (this->isZero())
+	if (this->isZero() || a.isZero())
 		return QInt(0, 0, 0, 0);
 
 	QInt result;
