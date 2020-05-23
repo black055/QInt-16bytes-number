@@ -206,6 +206,13 @@ QInt QInt::operator+(QInt a)
 			isMissing = 1;
 		result.arrBit[i] = temp;
 	}
+
+	// check overflow
+	if (this->isPositive() && a.isPositive() && !result.isPositive())
+		throw "OVERFLOW";
+	if (!this->isPositive() && !a.isPositive() && result.isPositive())
+		throw "OVERFLOW";
+
 	return result;
 }
 
@@ -231,6 +238,13 @@ QInt QInt::operator-(QInt a)
 			isMissing = 1;
 		result.arrBit[i] = temp;
 	}
+
+	// check overflow
+	if (this->isPositive() && !a.isPositive() && !result.isPositive())
+		throw "OVERFLOW";
+	if (!this->isPositive() && a.isPositive() && result.isPositive())
+		throw "OVERFLOW";
+
 	return result;
 }
 
@@ -268,18 +282,18 @@ QInt QInt::operator*(QInt a)
 		{
 			if (replace.getBitAt(i * 32 + j) == 1)
 			{
-				QInt temp_result = result;
 				temp = a << (i * 32 + j);
 				result = result + temp;
-				QInt check = (result - temp_result) >> (i * 32 + j);
-				if (!(a - check).isZero())
-				{
-					return QInt();
-				}
 			}
 		}
 	}
-	
+
+	if (result == QInt(0x80000000, 0, 0, 0))
+		if (isNegative)
+			return result;
+		else
+			throw "OVERFLOW";
+
 	if (isNegative == true)
 	{
 		QInt zero;
@@ -291,7 +305,10 @@ QInt QInt::operator*(QInt a)
 QInt QInt::operator/(QInt a)
 {
 	// Một trong 2 số bằng 0
-	if (this->isZero() || a.isZero())
+	if (a.isZero())
+		//return QInt(INT_MAX, INT_MAX, INT_MAX, INT_MAX);
+		throw "DIVISION BY 0";
+	if (this->isZero())
 		return QInt(0, 0, 0, 0);
 
 	QInt result;
@@ -449,6 +466,14 @@ QInt QInt::operator>>(int a)
 		return result;
 	}
 	return QInt(*this);
+}
+
+bool QInt::operator==(QInt a)
+{
+	return arrBit[0] == a.arrBit[0] and
+		arrBit[1] == a.arrBit[1] and
+		arrBit[2] == a.arrBit[2] and
+		arrBit[3] == a.arrBit[3];
 }
 
 QInt QInt::rol()

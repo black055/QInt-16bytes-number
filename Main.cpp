@@ -33,13 +33,13 @@ void ioHandle(istream& in, ostream& out)
 	string cmd;
 	while (getline(in, cmd))
 	{
-		//try
-		//{
+		try
+		{
 			out << CmdHandler().handle(cmd) << endl;
-		//}
-		//catch (const char* msg)
-		//{
-		//	out << msg << endl;
-		//}
+		}
+		catch (const char* msg)
+		{
+			out << msg << endl;
+		}
 	}
 }
