@@ -101,8 +101,13 @@ QInt::QInt(std::string str, int base)
 
 		if (isNegative == true) {
 			// nếu là số âm thì gán vào this giá trị bù 2
-			*this = ~*this;
-			*this = *this + 1;
+			// trường hợp đặc biệt MINQINT ko cần đổi vì sẽ bị tràn số
+			if (*this == MINQINT) {}
+			else
+			{
+				*this = ~*this;
+				*this = *this + 1;
+			}
 		}
 	}
 }
@@ -148,8 +153,13 @@ std::string QInt::toString(int base)
 
 		if (temp.isPositive() == false) {
 			isNegative = true;
-			temp = temp - QInt(0, 0, 0, 1);
-			temp = ~temp;	
+			// trường hợp đặc biệt MINQINT ko cần đổi vì sẽ bị tràn số
+			if (temp == MINQINT) {}
+			else
+			{
+				temp = temp - QInt(0, 0, 0, 1);
+				temp = ~temp;
+			}
 		}
 		for (int i = 0; i < 128; i++) {
 			// lưu lại giá trị bit đầu
@@ -343,7 +353,8 @@ QInt QInt::operator*(QInt a)
 	else if (isNegative == false && (A == QInt(0, 0, 0, 0)) && result.isPositive())
 		return result;
 	else
-		return QInt(0, 0, 0, 0);
+		//return QInt(0, 0, 0, 0);
+		throw "OVERFLOW";
 }
 
 QInt QInt::operator/(QInt a)
@@ -577,3 +588,5 @@ void QInt::setBitAt(int index, int value)
 	else if (value == 0)
 		this->arrBit[position_byte] = ~(1 << position_bit) & this->arrBit[position_byte];
 }
+
+const QInt QInt::MINQINT(0x80000000, 0, 0, 0);

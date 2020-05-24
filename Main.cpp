@@ -35,6 +35,7 @@ void ioHandle(istream& in, ostream& out)
 	{
 		try
 		{
+			// Protected code block
 			out << CmdHandler().handle(cmd) << endl;
 		}
 		catch (const char* msg)

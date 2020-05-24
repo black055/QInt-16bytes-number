@@ -38,4 +38,6 @@ public:
 	bool isZero();
 	int getBitAt(int index);
 	void setBitAt(int index, int value);
+
+	static const QInt MINQINT;
 };
