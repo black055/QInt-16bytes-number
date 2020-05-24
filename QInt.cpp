@@ -266,49 +266,6 @@ QInt QInt::operator-(int a)
 QInt QInt::operator*(QInt a)
 {
 	QInt result;
-	/*if (this->isZero() || a.isZero())
-		return result;
-	bool isNegative = false;
-	QInt replace = *this;
-	if (a.arrBit[0] < 0 && this->arrBit[0] < 0) {
-		isNegative = false;
-		QInt zero;
-		a = zero - a;
-		replace = zero - *this;
-	}
-	else if (a.arrBit[0] < 0 || this->arrBit[0] < 0) {
-		isNegative = true;
-		QInt zero;
-		if (a.arrBit[0] < 0)
-			a = zero - a;
-		else
-			replace = zero - *this;
-	}
-
-	QInt temp;
-	for (int i = 0; i < 4; i++)
-	{
-		for (int j = 0; j < 32; j++)
-		{
-			if (replace.getBitAt(i * 32 + j) == 1)
-			{
-				temp = a << (i * 32 + j);
-				result = result + temp;
-			}
-		}
-	}
-
-	if (result == QInt(0x80000000, 0, 0, 0))
-		if (isNegative)
-			return result;
-		else
-			throw "OVERFLOW";
-
-	if (isNegative == true)
-	{
-		QInt zero;
-		result = zero - result;
-	}*/
 
 	if (this->isZero() || a.isZero())
 		return result;
@@ -320,7 +277,6 @@ QInt QInt::operator*(QInt a)
 	else if (a.arrBit[0] < 0 || this->arrBit[0] < 0) {
 		isNegative = true;
 	}
-
 
 	// Thuật toán Booth
 	QInt A;
@@ -337,14 +293,10 @@ QInt QInt::operator*(QInt a)
 		int lsb_Q = Q.getBitAt(0);
 		A = A >> 1;
 		Q = Q >> 1;
-		if (lsb_A == 1)
-			Q.setBitAt(127, 1);
-		else
-			Q.setBitAt(127, 0);
-		if (lsb_Q == 1)
-			Q1 = 1;
-		else
-			Q1 = 0;
+
+		Q.setBitAt(127, lsb_A);
+
+		Q1 = lsb_Q;
 	}
 	result = Q;
 
@@ -353,7 +305,6 @@ QInt QInt::operator*(QInt a)
 	else if (isNegative == false && (A == QInt(0, 0, 0, 0)) && result.isPositive())
 		return result;
 	else
-		//return QInt(0, 0, 0, 0);
 		throw "OVERFLOW";
 }
 
@@ -361,30 +312,12 @@ QInt QInt::operator/(QInt a)
 {
 	// Một trong 2 số bằng 0
 	if (a.isZero())
-		//return QInt(INT_MAX, INT_MAX, INT_MAX, INT_MAX);
 		throw "DIVISION BY 0";
 	if (this->isZero())
 		return QInt(0, 0, 0, 0);
 
 	QInt result;
 	QInt replace = *this;
-
-	// Kiểm tra số âm
-	bool isNegative = false;
-	if (a.arrBit[0] < 0 && this->arrBit[0] < 0) {
-		isNegative = false;
-		QInt zero;
-		a = zero - a;
-		replace = zero - replace;
-	}
-	else if (a.arrBit[0] < 0 || this->arrBit[0] < 0) {
-		isNegative = true;
-		QInt zero;
-		if (a.arrBit[0] < 0)
-			a = zero - a;
-		else
-			replace = zero - replace;
-	}
 
 	// Số bị chia và số chia bằng nhau
 	if ((replace - a).isZero())
@@ -397,39 +330,33 @@ QInt QInt::operator/(QInt a)
 		return QInt(0, 0, 0, 0);
 	else
 	{
-		while (replace.isZero() == false)
+		QInt A;
+		QInt Q = *this;
+		QInt M = a;
+		if (!(this->isPositive()))
+			A = QInt(-1, -1, -1, -1);
+
+		for (int i = 0; i < 128; ++i)
 		{
-			QInt sub = replace - a;
-			if (sub.isPositive() == false)
-				break;
-			QInt quotient(0, 0, 0, 1);
-			for (int i = 0; i < 128; i++)
+			int lsb_Q = Q.getBitAt(127);
+			A = A << 1;
+			Q = Q << 1;
+			A.setBitAt(0, lsb_Q);
+
+			A = A - M;
+			if (!A.isPositive())
 			{
-				QInt temp = (quotient * a);
-				temp = temp - replace;
-				if (temp.isPositive() && temp.isZero() == false)
-				{
-					quotient = quotient >> 1;
-					result = result + quotient;
-					replace = replace - a * quotient;
-					break;
-				}
-				else if (temp.isPositive())
-				{
-					result = result + quotient;
-					replace = replace - a * quotient;
-					break;
-				}
-				quotient = quotient << 1;
+				Q.setBitAt(0, 0);
+				A = A + M;
 			}
+			else
+				Q.setBitAt(0, 1);
 		}
+
+		result = Q;
+		return result;
 	}
 
-	if (isNegative == true)
-	{
-		QInt zero;
-		result = zero - result;
-	}
 	return result;
 }
 
