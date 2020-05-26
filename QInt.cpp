@@ -267,10 +267,12 @@ QInt QInt::operator*(QInt a)
 {
 	QInt result;
 
+	// Kiểm tra nhân với 0
 	if (this->isZero() || a.isZero())
 		return result;
-	bool isNegative = false;
 
+	// Kiểm tra phép nhân có số âm
+	bool isNegative = false;
 	if (a.arrBit[0] < 0 && this->arrBit[0] < 0) {
 		isNegative = false;
 	}
@@ -300,6 +302,7 @@ QInt QInt::operator*(QInt a)
 	}
 	result = Q;
 
+	// Kiểm tra kết quả hợp lệ trước khi trả về
 	if (isNegative == true && (A == QInt(-1, -1, -1, -1)) && !result.isPositive())
 		return  result;
 	else if (isNegative == false && (A == QInt(0, 0, 0, 0)) && result.isPositive())
@@ -319,19 +322,37 @@ QInt QInt::operator/(QInt a)
 	QInt result;
 	QInt replace = *this;
 
-	// Số bị chia và số chia bằng nhau
+	// Kiểm tra phép chia có số âm và chuyển về số dương hết
+	bool isNegative = false;
+	if (a.arrBit[0] < 0 && this->arrBit[0] < 0) {
+		isNegative = false;
+		replace = QInt(0, 0, 0, 0) - *this;
+		a = QInt(0, 0, 0, 0) - a;
+	}
+	else if (a.arrBit[0] < 0 || this->arrBit[0] < 0) {
+		isNegative = true;
+		if(a.arrBit[0]<0)
+			a = QInt(0, 0, 0, 0) - a;
+		else
+			replace = QInt(0, 0, 0, 0) - *this;
+	}
+
+	// Số bị chia và số chia bằng nhau trả về 1
 	if ((replace - a).isZero())
 	{
 		QInt temp("1", 10);
 		result = temp;
 	}
-	// Số bị chia nhỏ hơn số chia
+
+	// Số bị chia nhỏ hơn số chia trả về 0
 	else if ((replace - a).isPositive() == false)
 		return QInt(0, 0, 0, 0);
+
 	else
 	{
+		// Thuật toán Restoring Divison 
 		QInt A;
-		QInt Q = *this;
+		QInt Q = replace;
 		QInt M = a;
 		if (!(this->isPositive()))
 			A = QInt(-1, -1, -1, -1);
@@ -353,7 +374,17 @@ QInt QInt::operator/(QInt a)
 				Q.setBitAt(0, 1);
 		}
 
+		if (Q == QInt(0x80000000, 0, 0, 0))
+		{
+			if (isNegative == true)
+				return Q;
+			else
+				throw "OVERFLOW";
+		}
+
 		result = Q;
+		if (isNegative == true)
+			result = QInt(0, 0, 0, 0) - Q;
 		return result;
 	}
 
@@ -462,9 +493,9 @@ QInt QInt::rol()
 {
 	QInt result;
 	QInt temp;
-	int bit = getBitAt(127);
-	temp = *this << 1;
-	temp.setBitAt(0, bit);
+	int bit = getBitAt(127);	// lấy msb
+	temp = *this << 1;			// dịch trái
+	temp.setBitAt(0, bit);		// set lsb thành msb vừa lấy ở trên
 	result = temp;
 	return result;
 }
@@ -473,9 +504,9 @@ QInt QInt::ror()
 {
 	QInt result;
 	QInt temp;
-	int bit = getBitAt(0);
-	temp = *this >> 1;
-	temp.setBitAt(127, bit);
+	int bit = getBitAt(0);		// lấy lsb
+	temp = *this >> 1;			// dịch phải
+	temp.setBitAt(127, bit);	// set msb thành lsb vừa lấy ở trên
 	result = temp;
 	return result;
 }
@@ -499,6 +530,7 @@ bool QInt::isZero()
 
 int QInt::getBitAt(int index)
 {
+	// Lấy giá trị của bit (0 hoặc 1) tại vị trí index
 	int result;
 	int position_byte = (127 - index) / 32;
 	int position_bit = index % 32;
@@ -508,6 +540,7 @@ int QInt::getBitAt(int index)
 
 void QInt::setBitAt(int index, int value)
 {
+	// Gán giá trị của bit tại vị trí index bằng giá trị value
 	int position_byte = (127 - index) / 32;
 	int position_bit = index % 32;
 	if (value == 1)
