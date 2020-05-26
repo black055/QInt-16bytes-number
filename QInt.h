@@ -30,6 +30,7 @@ public:
 	QInt operator >> (int a);
 
 	bool operator == (QInt a);
+	bool operator != (QInt a);
 
 	QInt rol();
 	QInt ror();

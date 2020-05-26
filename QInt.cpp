@@ -326,68 +326,66 @@ QInt QInt::operator/(QInt a)
 	bool isNegative = false;
 	if (a.arrBit[0] < 0 && this->arrBit[0] < 0) {
 		isNegative = false;
-		replace = QInt(0, 0, 0, 0) - *this;
-		a = QInt(0, 0, 0, 0) - a;
+		if (*this != MINQINT)
+			replace = QInt(0, 0, 0, 0) - *this;
+		if (a != MINQINT)
+			a = QInt(0, 0, 0, 0) - a;
 	}
 	else if (a.arrBit[0] < 0 || this->arrBit[0] < 0) {
 		isNegative = true;
-		if(a.arrBit[0]<0)
-			a = QInt(0, 0, 0, 0) - a;
-		else
-			replace = QInt(0, 0, 0, 0) - *this;
+		if (a.arrBit[0] < 0) {
+			if (a != MINQINT)
+				a = QInt(0, 0, 0, 0) - a;
+		} else {
+			if (*this != MINQINT)
+				replace = QInt(0, 0, 0, 0) - *this;
+		}
 	}
 
 	// Số bị chia và số chia bằng nhau trả về 1
-	if ((replace - a).isZero())
+	if (replace == a)
 	{
 		QInt temp("1", 10);
 		result = temp;
-	}
-
-	// Số bị chia nhỏ hơn số chia trả về 0
-	else if ((replace - a).isPositive() == false)
-		return QInt(0, 0, 0, 0);
-
-	else
-	{
-		// Thuật toán Restoring Divison 
-		QInt A;
-		QInt Q = replace;
-		QInt M = a;
-		if (!(this->isPositive()))
-			A = QInt(-1, -1, -1, -1);
-
-		for (int i = 0; i < 128; ++i)
-		{
-			int lsb_Q = Q.getBitAt(127);
-			A = A << 1;
-			Q = Q << 1;
-			A.setBitAt(0, lsb_Q);
-
-			A = A - M;
-			if (!A.isPositive())
-			{
-				Q.setBitAt(0, 0);
-				A = A + M;
-			}
-			else
-				Q.setBitAt(0, 1);
-		}
-
-		if (Q == QInt(0x80000000, 0, 0, 0))
-		{
-			if (isNegative == true)
-				return Q;
-			else
-				throw "OVERFLOW";
-		}
-
-		result = Q;
-		if (isNegative == true)
-			result = QInt(0, 0, 0, 0) - Q;
 		return result;
 	}
 
+	// Số bị chia nhỏ hơn số chia trả về 0
+	if (a == MINQINT)
+		return QInt(0, 0, 0, 0);
+	if (replace != MINQINT && (replace - a).isPositive() == false)
+		return QInt(0, 0, 0, 0);
+
+	// Thuật toán Restoring Divison 
+	QInt A;
+	QInt Q = replace;
+	QInt M = a;
+	//if (!(this->isPositive()))
+	//	A = QInt(-1, -1, -1, -1);
+
+	for (int i = 0; i < 128; ++i)
+	{
+		int lsb_Q = Q.getBitAt(127);
+		A = A << 1;
+		Q = Q << 1;
+		A.setBitAt(0, lsb_Q);
+
+		A = A - M;
+		if (!A.isPositive())
+		{
+			Q.setBitAt(0, 0);
+			A = A + M;
+		}
+		else
+			Q.setBitAt(0, 1);
+	}
+
+	if (Q == MINQINT && !isNegative)
+		throw "OVERFLOW";
+
+	result = Q;
+	if (isNegative == true && result != MINQINT)
+		result = QInt(0, 0, 0, 0) - Q;
 	return result;
 }
 
@@ -487,6 +485,11 @@ bool QInt::operator==(QInt a)
 		arrBit[1] == a.arrBit[1] and
 		arrBit[2] == a.arrBit[2] and
 		arrBit[3] == a.arrBit[3];
+}
+
+bool QInt::operator!=(QInt a)
+{
+	return !(*this == a);
 }
 
 QInt QInt::rol()
