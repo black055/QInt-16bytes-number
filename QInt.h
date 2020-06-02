@@ -5,6 +5,11 @@
 class QInt {
 private:
 	int arrBit[4];
+
+	static int getArrayIndex(int i);
+	static int getBitIndex(int i);
+	static std::string div2(std::string number);
+
 public:
 	QInt();
 	QInt(int a, int b, int c, int d);

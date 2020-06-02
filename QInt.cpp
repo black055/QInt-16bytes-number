@@ -1,18 +1,18 @@
 ﻿#include "QInt.h"
 
-int getArrayIndex(int i) {
+int QInt::getArrayIndex(int i) {
 	if (i > 127 || i < 0)
 		return -1;
 	return ((127 - i) / 32);
 }
 
-int getBitIndex(int i) {
+int QInt::getBitIndex(int i) {
 	if (i > 127 || i < 0)
 		return -1;
 	return i % 32;
 }
 
-std::string div2(std::string number) {
+std::string QInt::div2(std::string number) {
 	// Trả về number / 2 (dưới dạng String)
 	std::string result;
 	int temp = 0, index = 0;
@@ -342,26 +342,31 @@ QInt QInt::operator/(QInt a)
 		}
 	}
 
-	// Số bị chia và số chia bằng nhau trả về 1
+	//số chia và số bị chia bằng nhau
 	if (replace == a)
 	{
 		QInt temp("1", 10);
-		result = temp;
-		return result;
+		if (isNegative) temp = QInt(-1, -1, -1, -1);
+		return temp;
 	}
-
-	// Số bị chia nhỏ hơn số chia trả về 0
+	// TH đặc biệt: số chia = MINQINT lớn hơn số bị chia
 	if (a == MINQINT)
 		return QInt(0, 0, 0, 0);
+	// số chia lớn hơn số bị chia
 	if (replace != MINQINT && (replace - a).isPositive() == false)
 		return QInt(0, 0, 0, 0);
+	// TH đặc biệt khiến thuật toán chia báo lỗi tràn
+	if (replace == MINQINT && (a - QInt(0x40000000, 0, 0, 1)).isPositive())
+	{
+		QInt tmp(0, 0, 0, 1);
+		if (isNegative) tmp = QInt(-1, -1, -1, -1);
+		return tmp;
+	}
 
-	// Thuật toán Restoring Divison 
+	// Thuật toán Restoring Divison (cho 2 số dương)
 	QInt A;
 	QInt Q = replace;
 	QInt M = a;
-	//if (!(this->isPositive()))
-	//	A = QInt(-1, -1, -1, -1);
 
 	for (int i = 0; i < 128; ++i)
 	{
